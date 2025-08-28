@@ -174,4 +174,56 @@ const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience, onBack 
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Reviews</span>
-                  <span className="text-white font-semibold">{mockReviews.length
+                  <span className="text-white font-semibold">{mockReviews.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Created</span>
+                  <span className="text-white font-semibold">Jan 2025</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Creator Info */}
+            <div className="bg-gray-800 rounded-xl p-6 space-y-4">
+              <h3 className="text-lg font-bold text-white">Creator</h3>
+              
+              <div className="flex items-center space-x-4">
+                <img
+                  src={experience.creatorAvatarUrl}
+                  alt={experience.creator}
+                  className="h-12 w-12 rounded-full"
+                />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white">{experience.creator}</h4>
+                  <p className="text-sm text-gray-400">Verified Creator</p>
+                </div>
+              </div>
+
+              <div className="flex space-x-2">
+                <button className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                  Follow
+                </button>
+                <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                  Message
+                </button>
+              </div>
+            </div>
+
+            {/* Related Experiences */}
+            <div className="bg-gray-800 rounded-xl p-6 space-y-4">
+              <h3 className="text-lg font-bold text-white">More Like This</h3>
+              <p className="text-sm text-gray-400">
+                Discover similar experiences you might enjoy
+              </p>
+              <button className="w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                View Similar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ExperienceDetail;
