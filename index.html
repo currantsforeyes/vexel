@@ -5,23 +5,397 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nexus Experiences</title>
     <script src="https://cdn.tailwindcss.com"></script>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@18.2.0",
-    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "three": "https://esm.sh/three@0.166.1",
-    "@react-three/fiber": "https://esm.sh/@react-three/fiber@8.16.8",
-    "@react-three/drei": "https://esm.sh/@react-three/drei@9.108.3",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^18.2.0/",
-    "react/": "https://aistudiocdn.com/react@^18.2.0/"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
-</head>
+    <style>
+      /* Custom CSS Variables for consistent theming */
+      :root {
+        --bg-primary: #111827; /* gray-900 */
+        --bg-secondary: #1f2937; /* gray-800 */
+        --bg-tertiary: #374151; /* gray-700 */
+        --text-primary: #f9fafb; /* gray-50 */
+        --text-secondary: #d1d5db; /* gray-300 */
+        --text-muted: #9ca3af; /* gray-400 */
+        --accent-blue: #3b82f6; /* blue-500 */
+        --accent-green: #10b981; /* emerald-500 */
+        --accent-purple: #8b5cf6; /* violet-500 */
+      }
+
+      /* Base styles */
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+      }
+
+      #root {
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      /* Custom scrollbar styles */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--bg-tertiary);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #6b7280; /* gray-500 */
+      }
+
+      /* Custom component styles */
+      .card-hover {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      }
+
+      .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Navigation styles */
+      .nav-item {
+        transition: all 0.2s ease-in-out;
+        border-radius: 8px;
+      }
+
+      .nav-item:hover {
+        background: var(--bg-secondary);
+        transform: translateX(4px);
+      }
+
+      .nav-item.active {
+        background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+        color: white;
+      }
+
+      /* Experience card styles */
+      .experience-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--bg-tertiary);
+        transition: all 0.3s ease-in-out;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .experience-card:hover {
+        border-color: var(--accent-blue);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+      }
+
+      .experience-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-green));
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      .experience-card:hover::before {
+        opacity: 1;
+      }
+
+      /* Genre badge styles */
+      .genre-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .genre-adventure { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+      .genre-roleplay { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+      .genre-combat { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+      .genre-simulation { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+      .genre-obby { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+      .genre-racing { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+
+      /* Loading animations */
+      .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .slide-in-right {
+        animation: slideInRight 0.3s ease-out;
+      }
+
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+
+      /* Utility classes */
+      .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    </style>
+  </head>
   <body class="bg-gray-900 text-white font-sans">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
-</html>
+    
+    <script type="module">
+      // Import React
+      import React, { useState } from 'https://esm.sh/react@18.2.0';
+      import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
+
+      // Constants
+      const ICONS = {
+        home: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" /></svg>`,
+        discover: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12.75 3.03v.568c0 .334.148.65.405.864l1.068.89c.442.369.535 1.01.216 1.49l-.51.766a2.25 2.25 0 0 1-1.161.886l-.143.048a1.107 1.107 0 0 0-.57 1.664c.369.555.169 1.307-.427 1.605L9 13.125l.423 1.059a.956.956 0 0 1-1.652.928l-.679-.906a1.125 1.125 0 0 0-1.906.172L4.5 15.75l-.612.153M12.75 3.031a9 9 0 0 0-8.862 12.872M12.75 3.031a9 9 0 0 1 6.69 14.036m0 0-.177.177a.956.956 0 0 1-1.273 0l-.559-.56a.956.956 0 0 1 0-1.273l.177-.177m0 0a.956.956 0 0 1 1.273 0l.559.56a.956.956 0 0 1 0 1.273l-.177.177M15 4.5l-.205.204a.956.956 0 0 1-1.273 0l-.559-.56a.956.956 0 0 1 0-1.273l.205-.204a.956.956 0 0 1 1.273 0l.559.56a.956.956 0 0 1 0 1.273Z" /></svg>`,
+        create: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`,
+        avatar: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm.75 4.5a.75.75 0 0 1-1.5 0v-2.25a.75.75 0 0 1 1.5 0v2.25Zm4.5 0a.75.75 0 0 1-1.5 0v-2.25a.75.75 0 0 1 1.5 0v2.25Z" /></svg>`,
+        store: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25a.75.75 0 0 1-.75-.75v-11.25a.75.75 0 0 1 .75-.75h2.25m13.5 0-3-3m0 0-3 3m3-3v11.25m6-11.25h-2.25a.75.75 0 0 0-.75.75v11.25c0 .414.336.75.75.75h2.25a.75.75 0 0 0 .75-.75V9.75a.75.75 0 0 0-.75-.75M9 21v-7.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21m12-12-3-3m0 0-3 3m3-3v7.5" /></svg>`,
+        logo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>`,
+        search: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>`,
+        users: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m-7.5-2.226A3 3 0 0 1 18 15.75v-2.25a3 3 0 0 1 3-3V9A3 3 0 0 1 18 6h-1.5a3 3 0 0 1-3-3V4.5A3 3 0 0 1 12 1.5H8.25a3 3 0 0 1-3 3v1.5a3 3 0 0 1-3 3v2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-1.5a3 3 0 0 1-3-3v-1.5a3 3 0 0 1 3-3H6.75" /></svg>`,
+        play: `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke-width="1.5" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347c.75.411.75 1.559 0 1.97l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z" /></svg>`,
+        profile: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>`,
+        settings: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-1.007 1.11-1.226.554-.22 1.197-.22 1.752 0 .549.219 1.02.684 1.11 1.226M15.004 19.06c.09.542.56 1.007 1.11 1.226.554-.22 1.197-.22 1.752 0 .549-.219 1.02.684 1.11-1.226M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18Zm0 0a8.949 8.949 0 0 0 5.482-1.657M12 3.054a8.949 8.949 0 0 0-5.482 1.657m0 0a.09.09 0 0 1 .09 0" /></svg>`,
+        billing: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h6m3-5.25h6m-6 2.25h6m3-10.5h.008v.008h-.008V8.25Zm-6 0h.008v.008h-.008V8.25Zm-6 0h.008v.008h-.008V8.25Z" /></svg>`,
+        notification: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>`,
+        currency: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`,
+        chevronDown: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>`
+      };
+
+      // Sample data
+      const experiences = [
+        {
+          id: '1',
+          title: 'Void Runners',
+          creator: 'PixelPioneers',
+          creatorAvatarUrl: 'https://picsum.photos/seed/creator1/40/40',
+          thumbnailUrl: 'https://picsum.photos/seed/game1/600/400',
+          playerCount: 12500,
+          genre: 'Combat',
+          description: 'Jump into a fast-paced sci-fi shooter. Battle across alien landscapes, customize your arsenal, and prove you are the ultimate Void Runner in intense team-based combat.',
+        },
+        {
+          id: '2',
+          title: 'Chrono Odyssey',
+          creator: 'DreamWeavers',
+          creatorAvatarUrl: 'https://picsum.photos/seed/creator2/40/40',
+          thumbnailUrl: 'https://picsum.photos/seed/game2/600/400',
+          playerCount: 45200,
+          genre: 'Adventure',
+          description: 'An epic open-world adventure awaits. Explore ancient ruins, solve cryptic puzzles, and shape your destiny as you travel through time to save the world from collapsing.',
+        },
+        {
+          id: '3',
+          title: 'Downtown Life',
+          creator: 'UrbanVerse',
+          creatorAvatarUrl: 'https://picsum.photos/seed/creator10/40/40',
+          thumbnailUrl: 'https://picsum.photos/seed/game10/600/400',
+          playerCount: 150000,
+          genre: 'Roleplay',
+          description: 'Live your dream life in a bustling virtual city. Get a job, customize your apartment, and socialize with players from around the world in this ultimate roleplaying experience.',
+        }
+      ];
+
+      const sidebarFriendsData = [
+        { name: 'Starlight', avatar: 'https://picsum.photos/seed/friend1/40/40', status: 'online', currentGame: { name: 'Void Runners', id: '1' } },
+        { name: 'GamerX', avatar: 'https://picsum.photos/seed/friend2/40/40', status: 'online', currentGame: { name: 'Chrono Odyssey', id: '2' } },
+        { name: 'Nova', avatar: 'https://picsum.photos/seed/friend3/40/40', status: 'online' },
+        { name: 'Raptor', avatar: 'https://picsum.photos/seed/friend4/40/40', status: 'offline' },
+        { name: 'Echo', avatar: 'https://picsum.photos/seed/friend5/40/40', status: 'offline' },
+      ];
+
+      // Icon Component
+      const Icon = ({ svg, className = "w-6 h-6", onClick }) => {
+        return React.createElement('div', {
+          className,
+          onClick,
+          dangerouslySetInnerHTML: { __html: svg }
+        });
+      };
+
+      // Experience Card Component
+      const ExperienceCard = ({ experience, onClick }) => {
+        const getGenreClass = (genre) => {
+          const genreClasses = {
+            Adventure: 'genre-adventure',
+            Roleplay: 'genre-roleplay', 
+            Combat: 'genre-combat',
+            Simulation: 'genre-simulation',
+            Obby: 'genre-obby',
+            Racing: 'genre-racing'
+          };
+          return genreClasses[genre] || 'genre-adventure';
+        };
+
+        return React.createElement('div', {
+          className: "experience-card rounded-xl cursor-pointer card-hover",
+          onClick: () => onClick(experience)
+        }, [
+          // Thumbnail
+          React.createElement('div', { 
+            key: 'thumbnail',
+            className: "relative overflow-hidden rounded-t-xl" 
+          }, [
+            React.createElement('img', {
+              key: 'img',
+              src: experience.thumbnailUrl,
+              alt: experience.title,
+              className: "w-full h-40 object-cover transition-transform duration-300 hover:scale-105"
+            }),
+            React.createElement('div', { 
+              key: 'genre-badge',
+              className: "absolute top-3 left-3" 
+            }, 
+              React.createElement('span', {
+                className: `genre-badge ${getGenreClass(experience.genre)}`
+              }, experience.genre)
+            )
+          ]),
+          // Content
+          React.createElement('div', { 
+            key: 'content',
+            className: "p-4 space-y-3" 
+          }, [
+            React.createElement('div', { key: 'title-creator' }, [
+              React.createElement('h3', {
+                key: 'title',
+                className: "font-bold text-white text-lg leading-tight line-clamp-1"
+              }, experience.title),
+              React.createElement('div', { 
+                key: 'creator',
+                className: "flex items-center space-x-2 mt-1" 
+              }, [
+                React.createElement('img', {
+                  key: 'creator-img',
+                  src: experience.creatorAvatarUrl,
+                  alt: experience.creator,
+                  className: "h-5 w-5 rounded-full"
+                }),
+                React.createElement('p', {
+                  key: 'creator-text',
+                  className: "text-sm text-gray-400"
+                }, `by ${experience.creator}`)
+              ])
+            ]),
+            React.createElement('p', {
+              key: 'description',
+              className: "text-sm text-gray-300 line-clamp-2 leading-relaxed"
+            }, experience.description),
+            React.createElement('div', {
+              key: 'footer',
+              className: "flex items-center justify-between pt-2 border-t border-gray-700"
+            }, [
+              React.createElement('div', {
+                key: 'stats',
+                className: "flex items-center space-x-1 text-gray-400"
+              }, [
+                React.createElement(Icon, {
+                  key: 'users-icon',
+                  svg: ICONS.users,
+                  className: "h-4 w-4"
+                }),
+                React.createElement('span', {
+                  key: 'player-count',
+                  className: "text-sm font-medium"
+                }, experience.playerCount.toLocaleString())
+              ]),
+              React.createElement('button', {
+                key: 'play-btn',
+                className: "bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-1"
+              }, [
+                React.createElement(Icon, {
+                  key: 'play-icon',
+                  svg: ICONS.play,
+                  className: "h-4 w-4"
+                }),
+                React.createElement('span', { key: 'play-text' }, 'Play')
+              ])
+            ])
+          ])
+        ]);
+      };
+
+      // Sidebar Component  
+      const Sidebar = ({ activePage, onNavClick }) => {
+        const navigationItems = [
+          { name: 'Home', icon: ICONS.home },
+          { name: 'Discover', icon: ICONS.discover },
+          { name: 'Create', icon: ICONS.create },
+          { name: 'Avatar', icon: ICONS.avatar },
+          { name: 'Store', icon: ICONS.store }
+        ];
+
+        const bottomItems = [
+          { name: 'Profile', icon: ICONS.profile },
+          { name: 'Settings', icon: ICONS.settings },
+          { name: 'Billing', icon: ICONS.billing }
+        ];
+
+        return React.createElement('div', {
+          className: "w-80 bg-gray-800 flex flex-col h-full border-r border-gray-700"
+        }, [
+          // Logo
+          React.createElement('div', {
+            key: 'logo',
+            className: "p-6 border-b border-gray-700"
+          }, 
+            React.createElement('div', {
+              className: "flex items-center space-x-3"
+            }, [
+              React.createElement('div', {
+                key: 'logo-icon',
+                className: "bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-lg"
+              }, React.createElement(Icon, {
+                svg: ICONS.logo,
+                className: "h-8 w-8 text-white"
+              })),
+              React.createElement('div', { key: 'logo-text' }, [
+                React.createElement('h1', {
+                  key: 'title',
+                  className: "text-xl font-bold text-white"
+                }, 'Nexus'),
+                React.createElement('p', {
+                  key: 'subtitle',
+                  className: "text-xs text-gray-400"
+                },
