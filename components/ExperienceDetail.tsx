@@ -32,7 +32,9 @@ const renderStars = (rating: number) => {
 };
 
 const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience, onBack }) => {
-  const averageRating = mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length;
+  const averageRating = mockReviews.length
+    ? mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length
+    : 0;
 
   return (
     <div className="animate-slide-in-right">
